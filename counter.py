@@ -4,14 +4,24 @@ from cvzone.FaceMeshModule import FaceMeshDetector
 from cvzone.PlotModule import LivePlot
 import time
 import datetime
+import firebase_admin
+from firebase_admin import db
+import json
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 detector = FaceMeshDetector(maxFaces=1) # max faces for detection is 1
 plotY = LivePlot(640,360,[10,40], invert=True)
 
+cred_obj = firebase_admin.credentials.Certificate(r'C:\Users\USER\Downloads\service_cer.json')
+default_app = firebase_admin.initialize_app(cred_obj, {'databaseURL': 'https://ireckon-ce2cb-default-rtdb.firebaseio.com/'})
+ref = db.reference('/')
+users_ref = ref.child('patients')
+
+name = "George"
+
 blinkCounter = 0
 counter = 0
-
+a = 1
 idList = [133,155,154,153,145,144,163,7,33,246,161,160,159,158,157,173,
           362,398,384,385,386,387,388,466,263,249,390,373,374,380,381,382]
 ratioList = []
@@ -19,15 +29,12 @@ ratioList = []
 l_p = time.time()
 last = 0
 time.sleep(1)
-print("Time                      ", "Blink Count")
+print("Name   Time                      ", "Blink Count")
 
 while True:
 
-
     if cap.get(cv2.CAP_PROP_POS_FRAMES) == cap.get(cv2.CAP_PROP_FRAME_COUNT): # to run the video file infinite times
         cap.set(cv2.CAP_PROP_POS_FRAMES,0)
-
-
 
     success, img = cap.read()
     img, faces = detector.findFaceMesh(img, draw=False)
@@ -79,7 +86,14 @@ while True:
     cv2.waitKey(1)
     if time.time() - l_p >= 5:
         last = blinkCounter
-        print(datetime.datetime.now(), blinkCounter)
+        if blinkCounter >= 5:
+            print(name, datetime.datetime.now(), blinkCounter)
+            users_ref.set({
+                'trial_name': {
+                    'Time': 'trial_time',
+                    'Blink_ Count': 'trial_blinkCounter'
+                }
+            })
         l_p = time.time()
         blinkCounter = 0
 
