@@ -3,10 +3,9 @@ import cvzone
 from cvzone.FaceMeshModule import FaceMeshDetector
 from cvzone.PlotModule import LivePlot
 import time
-import datetime
+from datetime import datetime
 import firebase_admin
-from firebase_admin import db
-import json
+from firebase_admin import db, firestore
 
 cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 detector = FaceMeshDetector(maxFaces=1) # max faces for detection is 1
@@ -87,13 +86,12 @@ while True:
     if time.time() - l_p >= 5:
         last = blinkCounter
         if blinkCounter >= 5:
-            print(name, datetime.datetime.now(), blinkCounter)
-            users_ref.set({
-                'trial_name': {
-                    'Time': 'trial_time',
-                    'Blink_ Count': 'trial_blinkCounter'
-                }
-            })
+            print(name, datetime.now(), blinkCounter)
+            dic = {
+                'time': datetime.now().timestamp(),
+                'BlinkCount': blinkCounter
+            }
+            users_ref.push().set(dic)
         l_p = time.time()
         blinkCounter = 0
 
